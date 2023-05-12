@@ -30,6 +30,35 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ./Test
 
+  build_and_test_mingw:
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Host properties
+      run: lscpu
+
+    - name: Set up MinGW
+      uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: x64
+    
+    - name: Configure CMake
+      run: cmake ./prj/cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} --parallel$(nproc)
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ./Test
+
+
   build_and_test_clang:
     runs-on: ubuntu-latest
 
